@@ -65,8 +65,56 @@ def partition(alist, lo, hi):
         else:
             return j    
 
+def merge_sort_start(alist):
+    return merge_sort(alist)
 
-def test_array_sort(name, fn, test, solution):
+def merge_sort(alist):
+    # Recursively breakup the list
+    if len(alist) > 1:
+        # Break into 2 separate halves
+        left_half = alist[:len(alist)/2]
+        right_half = alist[len(alist)/2 : ]
+
+        # Recursively sort them
+        left_half = merge_sort(left_half)
+        right_half = merge_sort(right_half)
+
+        # Merge the two sorted halves
+        return merge(left_half, right_half)
+    return alist
+
+def merge(left_half, right_half):
+    merged_list = []
+
+    # Repeatedly add the lower of the two lists
+    while left_half and right_half:
+        if left_half[0] < right_half[0]:
+            merged_list.append(left_half.pop(0))
+        else:
+            merged_list.append(right_half.pop(0))
+
+    # Add in leftover amounts
+    while left_half:
+        merged_list.append(left_half.pop(0))
+    while right_half:
+        merged_list.append(right_half.pop(0))
+    return merged_list
+
+def test_not_in_place_sort(name, fn, test, solution):
+    failure = False
+    original = test[:]
+    output = fn(test)
+    if output == solution:
+        print("\t%s Sort success on %s" % (name, output))
+    else:
+        failure = True
+        print("\t%s Sort failure" % name)
+        print("\t Input:\t %s" % original)
+        print("\t Outpu:\t %s" % output)
+    return failure
+
+
+def test_in_place_sort(name, fn, test, solution):
     failure = False
     original = test[:]
     fn(test)
@@ -79,7 +127,7 @@ def test_array_sort(name, fn, test, solution):
         print("\t Outpu:\t %s" % test)
     return failure
 
-def test_sort(name, fn):
+def test_sort(name, fn, test_fn):
     a = []
     fn(a)
     failure = False
@@ -89,16 +137,20 @@ def test_sort(name, fn):
     else:
         print("\t%s Sort success on empty list" % (name))
 
+    # Test normal set
+    test = [7, 1, 4, 2]
+    solution = [1, 2, 4, 7]
+    failure = failure or test_fn(name, fn, test, solution)
 
     # Test normal set
     test = [15, 32, 25, 27, 28, 32, 1, 100]
     solution = [1, 15, 25, 27, 28, 32, 32, 100]
-    failure = failure or test_array_sort(name, fn, test, solution)
+    failure = failure or test_fn(name, fn, test, solution)
 
     # Test Negative/Duplicates
     test = [-25, -13, 50, 3, 28, 0, -32, 1, 102, 50]
     solution = [-32, -25, -13, 0, 1, 3, 28, 50, 50, 102]
-    failure = failure or test_array_sort(name, fn, test, solution)
+    failure = failure or test_fn(name, fn, test, solution)
 
     if failure: 
         print("%s Sort Test FAILED" % (name))
@@ -107,9 +159,10 @@ def test_sort(name, fn):
 
 
 def main():
-    test_sort("Insertion", insertion_sort)
-    test_sort("Selection", selection_sort)
-    test_sort("Quick", quick_sort_start)
+    test_sort("Insertion", insertion_sort, test_in_place_sort)
+    test_sort("Selection", selection_sort, test_in_place_sort)
+    test_sort("Quick", quick_sort_start, test_in_place_sort)
+    test_sort("Merge", merge_sort_start, test_not_in_place_sort)
 
 if __name__ == "__main__":
     main()
